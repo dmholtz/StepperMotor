@@ -1,0 +1,7 @@
+StepperMotor	KEYWORD1
+setMotor	KEYWORD2
+motorConfig	KEYWORD2
+step	KEYWORD2
+stepping	KEYWORD2
+release	KEYWORD2
+wakeUp	KEYWORD2
