@@ -8,24 +8,15 @@ March 2018
 #ifndef StepperMotor_h
 #define StepperMotor_h
 
-#define TIMER_RESOLUTION 1000000
-
-#define TYPE_A4988 1
-#define TYPE_HALFBRIDGE 2
+#define TIMER_RESOLUTION 1000000L
 
 #include "Arduino.h"
-#include "DC_Motor.h"
 
 class StepperMotor
 {
-private:
-
-protected:
-
 public:
 	StepperMotor();
-	void setMotor(uint8_t step, uint8_t direction, uint8_t ms, uint8_t stby);
-	void setHalfBridge(DC_Motor* coil1, DC_Motor* coil2);
+	virtual ~StepperMotor() = default;
 	void attachLimitSwitch(uint8_t limitSwitchPin);
 	void motorConfig(int spr, long minrpm, long maxrpm, long accS);
 	void setVmax(long minrpf, long maxrpm);
@@ -42,28 +33,18 @@ public:
 	void sync(StepperMotor & syncedStepper, long & syncCurrentPos_ref, long syncTarget);
 	void endSync();
 
-	void wakeUp();
-	void release();
+	virtual void wakeUp() = 0;
+	virtual void release() = 0;
 
 	unsigned long getMaxVelocity();
 	unsigned long getMinVelocity();
+
+protected:
+	virtual void hardwareStep(const int8_t direction) = 0;
+
 private:
 	// Config parameters
 	void paramConfig();
-	void stepMotor(int direction);
-
-	// Stepper motor driver type
-	uint8_t _driverType;
-
-	// Pin mapping A4988
-	uint8_t _stepPin;
-	uint8_t _directionPin;
-	uint8_t _msPin;
-	uint8_t _stbyPin;
-
-	// Half-bridge driver
-	DC_Motor *coil1;
-	DC_Motor *coil2;
 
 	// Pin mapping limit switch
 	uint8_t _limitSwitchPin; 
@@ -88,9 +69,6 @@ private:
 	unsigned long _maximumCount = 0;			// maximum count at minimum speed
 	unsigned long _currentCount = 0;
 	long _lastRisingEdge = 0;
-
-	// stepping
-	uint8_t _internalStepNumber = 0;
 
 	bool _firstRun = true;
 	bool _stepStatus = false;					// determines the state of the STEP-Pin

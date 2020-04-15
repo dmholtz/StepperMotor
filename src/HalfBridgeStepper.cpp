@@ -1,7 +1,7 @@
 #include "HalfBridgeStepper.h"
 
 HalfBridgeStepper::HalfBridgeStepper(const DC_Motor *coil1, const DC_Motor *coil2)
-	: coil1{coil1}, coil2{coil2}, hardwareStepCount{0};
+	: coil1{coil1}, coil2{coil2}, hardwareStepNumber{0}
 {
 }
 
@@ -19,7 +19,7 @@ HalfBridgeStepper::~HalfBridgeStepper()
  * @param direction 
  * 
  * */
-void HalfBridgeStepper::stepMotor(const int8_t direction)
+void HalfBridgeStepper::hardwareStep(const int8_t direction)
 {
 	if (direction > 0)
 	{

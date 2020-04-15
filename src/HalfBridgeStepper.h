@@ -5,6 +5,7 @@
 
 #include "Arduino.h"
 #include "DC_Motor.h"
+#include "StepperMotor.h"
 
 class HalfBridgeStepper : public StepperMotor
 {
@@ -20,8 +21,8 @@ public:
 	HalfBridgeStepper(const DC_Motor* coil1, const DC_Motor* coil2);
 	virtual ~HalfBridgeStepper();
 
-	void wakeUp();
-	void release();
+	virtual void wakeUp() override;
+	virtual void release() override;
 };
 
 #endif

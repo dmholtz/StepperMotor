@@ -1,4 +1,4 @@
-/*
+/**
 StepperMotor.h: Control a stepper motor with A4988 and half-bridge motor drivers
 
 Created by David M. Holtz
@@ -25,36 +25,13 @@ March 2019:
 *new: added option for auto-referencing
 
 *changed: internal changes in motorConfig()
-*/
+**/
 
-#include "Arduino.h"
 #include "StepperMotor.h"
-#include "DC_Motor.h"
+
 
 StepperMotor::StepperMotor()
 {
-}
-
-void StepperMotor::setMotor(uint8_t step, uint8_t direction, uint8_t ms, uint8_t stby)
-{
-	_driverType = TYPE_A4988;
-
-	_stepPin = step;
-	pinMode(_stepPin, OUTPUT);
-	_directionPin = direction;
-	pinMode(_directionPin, OUTPUT);
-	_msPin = ms;
-	pinMode(_msPin, OUTPUT);
-	_stbyPin = stby;
-	pinMode(_stbyPin, OUTPUT);
-}
-
-void StepperMotor::setHalfBridge(DC_Motor* coil1, DC_Motor* coil2)
-{
-	_driverType = TYPE_HALFBRIDGE;
-
-	this->coil1 = coil1;
-	this->coil2 = coil2;
 }
 
 void StepperMotor::attachLimitSwitch(uint8_t limitSwitchPin)
@@ -65,7 +42,7 @@ void StepperMotor::attachLimitSwitch(uint8_t limitSwitchPin)
 
 void StepperMotor::motorConfig(int spr, long minrpm, long maxrpm, long accS)
 {
-	StepperMotor::wakeUp(); // default wake up
+	this->wakeUp(); // default wake up
 	_stepsPerRevolution = (long)spr;
 	_accelerationDistance = accS;
 	StepperMotor::setVmax(minrpm, maxrpm);
@@ -111,81 +88,9 @@ void StepperMotor::paramConfig()
 	}
 }
 
-void StepperMotor::stepMotor(int direction)
-{
-	switch (_driverType)
-	{
-	case TYPE_A4988:
-		if (direction > 0)
-		{
-			digitalWrite(_directionPin, HIGH);
-		}
-		else
-		{
-			digitalWrite(_directionPin, LOW);
-		}
-
-		if (!_stepStatus)
-		{
-			_stepStatus = true;
-			digitalWrite(_stepPin, HIGH);
-		}
-		else // stepPin: HIGH
-		{
-		if (micros() - _lastRisingEdge >= _zeroCount)
-		{
-			digitalWrite(_stepPin, LOW);
-			_stepStatus = false;
-		}
-		}
-
-		break;
-
-	case TYPE_HALFBRIDGE:
-		if (direction > 0 && _internalStepNumber < 3)
-		{
-			_internalStepNumber++;
-		}
-		else if (direction > 0 && _internalStepNumber == 3)
-		{
-			_internalStepNumber = 0;
-		}
-		else if (direction < 0 && _internalStepNumber > 0)
-		{
-			_internalStepNumber--;
-		}
-		else if (direction < 0 && _internalStepNumber == 0)
-		{
-			_internalStepNumber = 3;
-		}
-
-		if (_internalStepNumber == 0)
-		{
-			coil1->ccw(255);
-			coil2->cw(255);
-		}
-		else if (_internalStepNumber == 1)
-		{
-			coil1->ccw(255);
-			coil2->ccw(255);
-		}
-		else if (_internalStepNumber == 2)
-		{
-			coil1->cw(255);
-			coil2->ccw(255);
-		}
-		else if (_internalStepNumber == 3)
-		{
-			coil1->cw(255);
-			coil2->cw(255);
-		}
-		break;
-	}
-}
-
 bool StepperMotor::referencing(long &currentPos_ref)
 {
-	//StepperMotor::wakeUp();
+	StepperMotor::wakeUp();
 	if (digitalRead(_limitSwitchPin))
 	{
 		currentPos_ref = 0;
@@ -197,14 +102,14 @@ bool StepperMotor::referencing(long &currentPos_ref)
 		if(_firstRun)
 		{
 			_firstRun = false;
-			stepMotor(-1);
+			this->hardwareStep(-1);
 			currentPos_ref--;
 			_lastRisingEdge = micros();
 			return false;
 		}
 		if (micros() - _lastRisingEdge >= _maximumCount)
 		{
-			stepMotor(-1);
+			this->hardwareStep(-1);
 			currentPos_ref--;
 			_lastRisingEdge = micros();
 			return false;
@@ -220,7 +125,7 @@ void StepperMotor::step(int steps)
 
 bool StepperMotor::stepping(long &currentPos_ref, long target)
 {
-	StepperMotor::wakeUp();
+	this->wakeUp();
 	if (target == currentPos_ref)
 	{
 		_firstRun = true;
@@ -276,7 +181,7 @@ bool StepperMotor::stepping(long &currentPos_ref, long target)
 		}
 		// first step
 		_currentCount = _initialCount;
-		stepMotor(_direction);
+		this->hardwareStep(_direction);
 		_lastRisingEdge = micros();
 
 		if (abs(_distance) <= 2 * _accelerationDistance)
@@ -304,7 +209,8 @@ bool StepperMotor::stepping(long &currentPos_ref, long target)
 	{
 		if (micros() - _lastRisingEdge >= _zeroCount)
 		{
-			digitalWrite(_stepPin, LOW);
+			// Polling function required to pull the signal down
+			//digitalWrite(_stepPin, LOW);
 			_stepStatus = false;
 		}
 		return false;
@@ -320,7 +226,7 @@ bool StepperMotor::stepping(long &currentPos_ref, long target)
 			}
 			else
 			{
-				stepMotor(_direction);
+				this->hardwareStep(_direction);
 				_lastRisingEdge = micros();
 
 				if (currentPos_ref == _stopAccelerationPos)
@@ -383,7 +289,8 @@ void StepperMotor::oneStep()
 	{
 		if (micros() - _lastRisingEdge > 10)
 		{
-			digitalWrite(_stepPin, LOW);
+			// Polling function required to pull the signal down
+			//digitalWrite(_stepPin, LOW);
 			_stepStatus = false;
 		}
 		return;
@@ -392,8 +299,8 @@ void StepperMotor::oneStep()
 
 void StepperMotor::oneStep(long *currentPos_ref, int direction)
 {
-	StepperMotor::wakeUp();
-	stepMotor(direction);
+	this->wakeUp();
+	this->hardwareStep(direction);
 	_lastRisingEdge = micros();
 	*currentPos_ref += direction;
 }
@@ -409,33 +316,6 @@ void StepperMotor::sync(StepperMotor &syncedStepper, long &syncCurrentPos_ref, l
 void StepperMotor::endSync()
 {
 	_syncStatus = false;
-}
-
-void StepperMotor::release()
-{
-	switch (_driverType)
-	{
-	case TYPE_A4988:
-		digitalWrite(_stbyPin, LOW);
-		break;
-	case TYPE_HALFBRIDGE:
-		coil1->stop();
-		coil2->stop();
-		break;
-	}
-}
-
-void StepperMotor::wakeUp()
-{
-	switch (_driverType)
-	{
-	case TYPE_A4988:
-		digitalWrite(_stbyPin, HIGH);
-		break;
-	case TYPE_HALFBRIDGE:
-		stepMotor(0);
-		break;
-	}
 }
 
 unsigned long StepperMotor::getMinVelocity()
