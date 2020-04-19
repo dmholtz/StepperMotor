@@ -13,12 +13,14 @@ private:
 	DC_Motor *coil1;
 	DC_Motor *coil2;
 
-	uint8_t hardwareStepNumber;
+	uint8_t hardwareStepNumber {0};
+
 protected:
-	virtual void hardwareStep(const int8_t direction) override;
+	virtual void step(const Direction direction) override;
 
 public:
-	HalfBridgeStepper(const DC_Motor* coil1, const DC_Motor* coil2);
+	HalfBridgeStepper(const DC_Motor *coil1, const DC_Motor *coil2,
+					  const uint16_t stepsPerRevolution = 200);
 	virtual ~HalfBridgeStepper();
 
 	virtual void wakeUp() override;

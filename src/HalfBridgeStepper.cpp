@@ -1,15 +1,15 @@
 #include "HalfBridgeStepper.h"
 
-HalfBridgeStepper::HalfBridgeStepper(const DC_Motor *coil1, const DC_Motor *coil2)
-	: coil1{coil1}, coil2{coil2}, hardwareStepNumber{0}
+HalfBridgeStepper::HalfBridgeStepper(const DC_Motor *coil1,
+									 const DC_Motor *coil2,
+									 const uint16_t stepsPerRevolution)
+	: StepperMotor(stepsPerRevolution), coil1{coil1}, coil2{coil2}
 {
 }
 
 HalfBridgeStepper::~HalfBridgeStepper()
 {
 	this->release();
-	delete coil1;
-	delete coil2;
 }
 
 /**
@@ -19,17 +19,11 @@ HalfBridgeStepper::~HalfBridgeStepper()
  * @param direction 
  * 
  * */
-void HalfBridgeStepper::hardwareStep(const int8_t direction)
+void HalfBridgeStepper::step(const Direction direction)
 {
-	if (direction > 0)
-	{
-		++hardwareStepNumber;
-	}
-	else if (direction < 0)
-	{
-		--hardwareStepNumber;
-	}
-	
+	// Increments or decrements hardwareStepNumber, depending on direction
+	hardwareStepNumber += static_cast<int8_t>(direction);
+
 	// Select coil powering from hardwareStepNumber table
 	if ((hardwareStepNumber & B11) == B00)
 	{
@@ -55,11 +49,14 @@ void HalfBridgeStepper::hardwareStep(const int8_t direction)
 
 void HalfBridgeStepper::release()
 {
+	active = false;
 	coil1->stop();
 	coil2->stop();
 }
 
 void HalfBridgeStepper::wakeUp()
 {
-	this->hardwareStep(0);	// does not perform an acutal step but activates the coils only
+	active = true;
+	// does not perform an acutal step but activates the coils only
+	this->step(Direction::NONE); 
 }
