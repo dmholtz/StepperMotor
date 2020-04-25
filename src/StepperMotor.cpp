@@ -170,8 +170,7 @@ void StepperMotor::computeAcceleration(const bool keepComputing)
 	else
 	{
 		rampStepNumber++;
-		nextCount = (uint32_t)(currentCount - 2.0 * currentCount /
-												  (4.0 * rampStepNumber + 1.0));
+		nextCount = (uint32_t)(currentCount - 2.0 * currentCount / (4.0 * rampStepNumber + 1.0));
 		if (nextCount < maxSpeedCount)
 		{
 			// Exceeding maximum speed, undo acceleration
@@ -186,8 +185,7 @@ void StepperMotor::computeDeceleration(const bool keepComputing)
 {
 	if (rampStepNumber > 0)
 	{
-		nextCount = (uint32_t)(currentCount - 2.0 * currentCount /
-												  (-4.0 * rampStepNumber + 1));
+		nextCount = (uint32_t)(currentCount - 2.0 * currentCount / (-4.0 * rampStepNumber + 1));
 		rampStepNumber--;
 	}
 	else

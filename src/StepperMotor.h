@@ -138,6 +138,9 @@ protected:
 	 * */
 	virtual void step(const Direction direction) = 0;
 
+	/// time stamp of the last rising edge
+	unsigned long lastRisingEdge{0};
+
 	/// True, if the stepper driver chip is active
 	bool active {false};
 
@@ -167,8 +170,6 @@ private:
 	unsigned long nextCount{0};
 	/// number of step on the acceleration ramp: represented by 'n' in formula
 	uint16_t rampStepNumber{0};
-	/// time stamp of the last rising edge
-	unsigned long lastRisingEdge{0};
 	/// indicates, when a new count needs to be calculated
 	bool computationDue{true};
 

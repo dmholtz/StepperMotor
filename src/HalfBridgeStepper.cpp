@@ -1,7 +1,6 @@
 #include "HalfBridgeStepper.h"
 
-HalfBridgeStepper::HalfBridgeStepper(const DC_Motor *coil1,
-									 const DC_Motor *coil2,
+HalfBridgeStepper::HalfBridgeStepper(const DC_Motor *coil1, const DC_Motor *coil2,
 									 const uint16_t stepsPerRevolution)
 	: StepperMotor(stepsPerRevolution), coil1{coil1}, coil2{coil2}
 {
@@ -58,5 +57,5 @@ void HalfBridgeStepper::wakeUp()
 {
 	active = true;
 	// does not perform an acutal step but activates the coils only
-	this->step(Direction::NONE); 
+	this->step(Direction::NONE);
 }
