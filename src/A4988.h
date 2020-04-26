@@ -25,7 +25,7 @@ private:
     uint8_t standByPin;
 
     /// delay of the falling edge with respect to lastRisingEdge
-    const unsigned long fallingEdgeDelay {50};
+    const unsigned long fallingEdgeDelay {10};
 };
 
 #endif

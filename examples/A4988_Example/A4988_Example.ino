@@ -9,7 +9,7 @@ void setup() {
   // get the shield's second stepper and config 200 steps per revolution
   StepperMotor *mot = shield.getStepper(EXT_STEPPER_2, 200);
 
-  mot->speedConfig(0, 150, 100);
+  mot->speedConfig(1, 150, 100);
 
   Serial.println("Start....");
 

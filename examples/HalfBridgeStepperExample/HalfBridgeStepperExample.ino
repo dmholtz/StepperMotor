@@ -11,7 +11,7 @@ void setup() {
   // not best practice on the MegaDueShield, but decent for demonstration.
   StepperMotor *mot = new HalfBridgeStepper(coil1, coil2, 200);
 
-  mot->speedConfig(0, 300, 100);
+  mot->speedConfig(1, 300, 100);
 
   mot->setDistance(4000);
   while (!mot->run()) {}

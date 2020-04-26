@@ -1,4 +1,4 @@
-StepperMotor	KEYWORD1
+StepperMotor    KEYWORD1
 HalfBridgeStepper   KEYWORD1
 A4988   KEYWORD1
 setMinRPM	KEYWORD2

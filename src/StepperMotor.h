@@ -37,7 +37,7 @@ public:
 	/**
 	 * Sets the minimum starting speed and computes acceleration ramps.
 	 * 
-	 * @param minRPM >= 0; Unit: revolution per minute (RPM)
+	 * @param minRPM > 0; Unit: revolution per minute (RPM)
 	 * */
 	void setMinRPM(const float minRPM);
 
@@ -103,6 +103,29 @@ public:
 	bool atTarget() const;
 
 	/**
+	 * Runs a stepper motor at constant speed (i.e. the minimum speed) into the
+	 * given direction and counts the step on its way.
+	 * 
+	 * This method is non-blocking and needs to be polled at least once per step
+	 * cycle.
+	 * 
+	 * @param direction
+	 * Direction == COUNTERCLOCKWISE: increment constSpeedDistance counter
+	 * Direction == CLOCKWISE: decrement constSpeedDistance counter
+	 * Direction == NONE: stop movement and reset the counter to zero.
+	 * 
+	 * @return constSpeedDistance: the number of steps
+	 * 
+	 * */
+	long runConstSpeed(const Direction direction);
+
+	/**
+	 * Returns the number of steps the motor has move at constant speed until
+	 * runConstSpeed(Direction::NONE) was called.
+	 * */
+	long getConstSpeedDistance() const;
+
+	/**
 	 * Returns ture if and only if the driver chip is active.
 	 * */
 	bool isActive() const;
@@ -152,6 +175,8 @@ private:
 
 	/* Speed configuration ****************************************************/
 	float minRPM;
+	/// (Maximum) timer count an min speed.
+	unsigned long minSpeedCount;
 	/// (Minimum) timer count at max speed. Actual timer count must not be less.
 	unsigned long maxSpeedCount;
 	/// (Maximum) timer count at first step (minimum speed).
@@ -161,6 +186,8 @@ private:
 
 	/// Signed number of remaining steps the motor has to move
 	long distance{0};
+	/// Signed number of steps the motor has moved at constant speed
+	long constSpeedDistance{0};
 	/// States in which direction the motor is turning
 	Direction direction = Direction::NONE;
 

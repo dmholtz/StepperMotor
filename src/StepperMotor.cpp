@@ -17,26 +17,31 @@ StepperMotor::StepperMotor(const uint16_t stepsPerRevolution)
 	}
 	// Initialize to default values to prevent the program from running into an
 	// illegal state
-	speedConfig(0.0, 1.0, 1.0);
+	speedConfig(1.0, 2.0, 1.0);
 }
 
 void StepperMotor::setMinRPM(const float minRPM)
 {
-	if (minRPM >= 0)
+	if (minRPM > 0)
 	{
 		this->minRPM = minRPM;
+		float minRadsec = radsecFromRPM(minRPM);
+		minSpeedCount = countFromVelocity(minRadsec);
 	}
 }
 
 void StepperMotor::setMaxRPM(const float maxRPM)
 {
-	float maxRadsec = radsecFromRPM(maxRPM);
-	maxSpeedCount = countFromVelocity(maxRadsec);
+	if (maxRPM > 0)
+	{
+		float maxRadsec = radsecFromRPM(maxRPM);
+		maxSpeedCount = countFromVelocity(maxRadsec);
+	}
 }
 
 void StepperMotor::setAcceleration(const float acceleration)
 {
-	if (!this->isRunning())
+	if (!this->isRunning() && acceleration > 0)
 	{
 		// see also equation 15
 		float accRadsec2 = radsecFromRPM(acceleration);
@@ -117,6 +122,38 @@ bool StepperMotor::isRunning() const
 bool StepperMotor::atTarget() const
 {
 	return distance == 0;
+}
+
+long StepperMotor::runConstSpeed(const Direction direction)
+{
+	this->direction = direction;
+	if (direction == Direction::NONE)
+	{
+		currentStepDone();
+		constSpeedDistance = 0;
+	}
+	else
+	{
+		// rotation either clockwise or counterclockwise
+		currentCount = minSpeedCount;
+		unsigned long currentTime = micros();
+		if ((currentTime - lastRisingEdge) >= currentCount)
+		{
+			constSpeedDistance += static_cast<int8_t>(direction);
+			this->step(direction);
+			lastRisingEdge = currentTime;
+		}
+		else
+		{
+			this->step(Direction::NONE);
+		}
+	}
+	return constSpeedDistance;
+}
+
+long StepperMotor::getConstSpeedDistance() const
+{
+	return constSpeedDistance;
 }
 
 bool StepperMotor::isActive() const
@@ -216,7 +253,7 @@ void StepperMotor::scheduleStep()
 bool StepperMotor::currentStepDone()
 {
 	unsigned long currentTime = micros();
-	if((currentTime - lastRisingEdge) >= currentCount)
+	if ((currentTime - lastRisingEdge) >= currentCount)
 	{
 		return true;
 	}
